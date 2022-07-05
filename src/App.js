@@ -1,61 +1,78 @@
 import React, {Component} from 'react';
 import './css/App.css';
+import ReactPlayer from 'react-player';
 
-class App extends Component {
-    state = {
-        torrentInfoHash: "",
-        torrentMagnetURI: "",
-        torrentName: "",
-        torrentProgress: "",
-        torrentFiles: [],
-        mp4file:{}
+class PlayerApp extends Component {
+    constructor(props) {
+        super(props);
+        this.player = {}
+        this.state = {
+            video: {
+                src: this.props.mp4file,
+                preview: ""     // .jpg file
+            }
+        }
     }
 
-    componentDidMount() {
-        var torrentId = 'magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&dn=Sintel&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fsintel.torrent'
-        var WebTorrent = require('webtorrent');
-        var client = new WebTorrent();
+    onPlayerReady(player){
+        console.log("Player is ready: ", player);
+        this.player = player;
+    }
 
-        client.on('error', err => {
-            console.log('[+] Webtorrent error: ' + err.message);
-        });
+    onVideoPlay(duration){
+        console.log("Video played at: ", duration);
+    }
 
-        client.add(torrentId, (torrent) => {
-            const interval = setInterval(() => {
-                this.setState({torrentProgress: (torrent.progress * 100).toFixed(1) + '%'});
-            }, 5000);
+    onVideoPause(duration){
+        console.log("Video paused at: ", duration);
+    }
 
-            torrent.on('done', () => {
-                console.log('Progress: 100%');
-                clearInterval(interval);
-            })
+    onVideoTimeUpdate(duration){
+        console.log("Time updated: ", duration);
+    }
 
-            this.setState({
-                torrentInfoHash: torrent.infoHash,
-                torrentMagnetURI: torrent.magnetURI,
-                torrentName: torrent.name,
-                torrentFiles: torrent.files
-            });
+    onVideoSeeking(duration){
+        console.log("Video seeking: ", duration);
+    }
 
-            var mp4File = this.state.torrentFiles.find(function (file) {
-                return file.name.endsWith('.mp4');
-            });
-            mp4File.appendTo('body');
-            this.setState({mp4file:mp4File.path});
-            console.log(mp4File.path);
-
-            this.state.torrentFiles.map((file, i) => {
-                console.log(file.name)
-            })
-        });
+    onVideoSeeked(from, to){
+        console.log(`Video seeked from ${from} to ${to}`);
     }
 
     render() {
         return (
             <div>
-                <h1>{this.state.torrentName}</h1>
-                <p><b>Torrent Info Hash: </b>{this.state.torrentInfoHash}</p>
-                <p><b>Torrent Progress: </b>{this.state.torrentProgress}</p>
+                {<ReactPlayer
+                    url="https://youtu.be/JCN8sCWJJ8o"
+                    controls={true}
+                    playing={true}
+                    width="100%"
+                    height="100%"
+                    light={this.state.video.preview}
+                    onReady={this.onPlayerReady.bind(this)}
+                    onPlay={this.onVideoPlay.bind(this)}
+                    onPause={this.onVideoPause.bind(this)}
+                    onTimeUpdate={this.onVideoTimeUpdate.bind(this)}
+                    onSeeking={this.onVideoSeeking.bind(this)}
+                    onSeeked={this.onVideoSeeked.bind(this)}
+                />}
+            </div>
+        );
+    }
+}
+
+class App extends Component {
+    state = {
+        mp4file:{}
+    }
+
+    render() {
+        const file = this.state.mp4file;
+        return (
+            <div>
+                {<PlayerApp
+                    mp4file={file}
+                />}
             </div>
         );
     }
